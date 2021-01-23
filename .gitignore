@@ -1,0 +1,28 @@
+pyobjpextractor/models
+models/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ignore latex generated stuff
+publications/**/*.aux
+publications/**/*.log
+
+logs/
+
+*.tar
+*.pth
+*.spec
+
+data/*.csv
+data/*.jpg
+data/*.png
+
+environment.yml
+
+build/
+
+# Ignore jupyter notebook checkpoints
+notebooks/.ipynb_checkpoints/
