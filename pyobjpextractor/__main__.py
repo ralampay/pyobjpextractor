@@ -18,6 +18,8 @@ def main():
   parser.add_argument("--output-dir", help="Output directory of saved image proposals", type=str, default="./")
   parser.add_argument("--ss-rect-increment", help="Increment value for SS", type=int, default=1)
   parser.add_argument("--ss-padding", help="Padding in pixels for drawing rectangles", type=int, default=5)
+  parser.add_argument("--ss-is-fast", help="Fast processing for SS", type=bool, default=True)
+  parser.add_argument("--ss-num-rects", help="Number of initial rectangles for SS", type=int, default=500)
 
   args = parser.parse_args()
 
@@ -25,10 +27,12 @@ def main():
   output_dir        = args.output_dir
   ss_rect_increment = args.ss_rect_increment
   ss_padding        = args.ss_padding
+  ss_is_fast        = args.ss_is_fast
+  ss_num_rects      = args.ss_num_rects
 
   image = cv2.imread(input_file)
 
-  extractor = SsObjExtractor(img=image, padding=ss_padding)
+  extractor = SsObjExtractor(img=image, padding=ss_padding, is_fast=ss_is_fast, num_rects=ss_num_rects)
 
   extractor.exec()
 

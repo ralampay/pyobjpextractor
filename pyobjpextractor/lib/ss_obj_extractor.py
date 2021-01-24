@@ -1,13 +1,14 @@
 import cv2
 
 class SsObjExtractor:
-  def __init__(self, img=None, is_fast=True, num_rects=100, padding=5):
-    self.img        = img
-    self.is_fast    = is_fast
-    self.rects      = []
-    self.num_rects  = num_rects
-    self.padding    = padding
-    self.ss         = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
+  def __init__(self, img=None, is_fast=True, num_rects=100, padding=5, sort_reverse=False):
+    self.img          = img
+    self.is_fast      = is_fast
+    self.rects        = []
+    self.num_rects    = num_rects
+    self.padding      = padding
+    self.sort_reverse = sort_reverse
+    self.ss           = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
 
     self.ss.setBaseImage(self.img)
 
@@ -18,6 +19,8 @@ class SsObjExtractor:
 
   def exec(self):
     self.rects = self.ss.process()
+
+    self.rects = sorted(self.rects, key=lambda x: x[2] * x[3], reverse=self.sort_reverse)
 
     self.draw_rectangles()
 
