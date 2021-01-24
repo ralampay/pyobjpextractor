@@ -24,4 +24,6 @@ pip uninstall pyobjpextractor
 
 ## Sample Usage
 
-(TODO)
+```
+pyobjpextractor-cli --input-file [path_to_image]
+```
