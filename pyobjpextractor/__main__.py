@@ -32,6 +32,7 @@ def main():
   parser.add_argument("--num-rects", help="Number of initial bounding boxes", type=int, default=500)
   parser.add_argument("--ss-padding", help="Padding in pixels for drawing rectangles", type=int, default=5)
   parser.add_argument("--ss-is-fast", help="Fast processing for SS", type=bool, default=True)
+  parser.add_argument("--canny-sigma", help="sigma for auto edge calculation for Canny", type=float, default=0.33)
 
   args = parser.parse_args()
 
@@ -42,13 +43,14 @@ def main():
   num_rects       = args.num_rects
   ss_padding      = args.ss_padding
   ss_is_fast      = args.ss_is_fast
+  canny_sigma     = args.canny_sigma
 
   image = cv2.imread(input_file)
 
   if mode == "ss":
     extractor = SsObjExtractor(img=image, padding=ss_padding, is_fast=ss_is_fast, num_rects=num_rects)
   elif mode == "canny":
-    extractor = CannyObjExtractor(img=image, padding=ss_padding, num_rects=num_rects)
+    extractor = CannyObjExtractor(img=image, padding=ss_padding, num_rects=num_rects, sigma=canny_sigma)
 
   extractor.exec()
 
