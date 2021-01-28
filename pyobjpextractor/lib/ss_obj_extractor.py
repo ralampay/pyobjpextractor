@@ -36,3 +36,4 @@ class SsObjExtractor:
       if(i < self.num_rects):
         x, y, w, h = rect
         cv2.rectangle(self.processed_img, (x - self.padding, y - self.padding), (x + w + self.padding, y + h + self.padding), (0, 255, 0), 1, cv2.LINE_AA)
+        cv2.rectangle(self.processed_img, (x, y), (x + w, y + h), (255, 255, 0), 1, cv2.LINE_AA)

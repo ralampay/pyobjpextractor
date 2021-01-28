@@ -36,7 +36,7 @@ class CannyObjExtractor:
       epsilon = 0.1*cv2.arcLength(c, True)
       poly    = cv2.approxPolyDP(c, epsilon, True)
 
-      rects.append(cv2.boundingRect(poly))
+      rects.append(np.array(cv2.boundingRect(poly)))
 
     return rects
 
@@ -47,4 +47,5 @@ class CannyObjExtractor:
     for i, rect in enumerate(self.rects):
       if(i < self.num_rects):
         x, y, w, h = rect
-        cv2.rectangle(self.processed_img, (x - self.padding, y - self.padding), (x + w + self.padding, y + h + self.padding), (0, 255, 0), 1, cv2.LINE_AA)
+        cv2.rectangle(self.processed_img, (x - self.padding, y - self.padding), (x + w + (self.padding), y + h + (self.padding)), (0, 255, 0), 1, cv2.LINE_AA)
+        cv2.rectangle(self.processed_img, (x, y), (x + w, y + h), (255, 255, 0), 1, cv2.LINE_AA)

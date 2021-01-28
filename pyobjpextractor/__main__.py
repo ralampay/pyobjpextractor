@@ -2,11 +2,13 @@ import sys
 import argparse
 import os
 import cv2
+import uuid
 sys.path.append(os.path.join(os.path.dirname(__file__), '.'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from lib.ss_obj_extractor import SsObjExtractor
 from lib.canny_obj_extractor import CannyObjExtractor
+from lib.extractor_util import ExtractorUtil
 
 WINDOW_NAME="OUTPUT"
 
@@ -20,7 +22,23 @@ MODE_CHOICES = [
 ]
 
 def mouse_callback(event, x, y, flags, param):
-  print("Current Position (%d, %d)" % (x, y))
+  if event == cv2.EVENT_LBUTTONUP:
+    print("Current Position (%d, %d)" % (x, y))
+
+    rects = param['extractor_util'].fetch_rects_in_bounds(x, y)
+
+    print("Found {} regions!".format(len(rects)))
+
+    regions = []
+
+    for r in rects:
+      roi = param['image'][r[1]:r[1] + r[3], r[0]:r[0] + r[2]]
+      filename = "{}/{}.jpg".format(param['output_dir'], str(uuid.uuid1()))
+
+      print("Saving to {}".format(filename))
+
+      # save to output dir
+      cv2.imwrite(filename, roi)
 
 def main():
   parser = argparse.ArgumentParser(description="PyObjPExtractor: Object Proposal Extractor program")
@@ -54,9 +72,16 @@ def main():
 
   extractor.exec()
 
+  callback_params = {
+    'extractor': extractor,
+    'extractor_util': ExtractorUtil(extractor),
+    'image': image,
+    'output_dir': output_dir
+  }
+
   while True:
     cv2.imshow(WINDOW_NAME, extractor.processed_img)
-    cv2.setMouseCallback(WINDOW_NAME, mouse_callback)
+    cv2.setMouseCallback(WINDOW_NAME, mouse_callback, callback_params)
     
     # Record key press
     k = cv2.waitKey(0) & 0xFF
