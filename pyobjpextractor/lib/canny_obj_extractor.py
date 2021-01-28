@@ -22,7 +22,8 @@ class CannyObjExtractor:
     self.rects = sorted(self.rects, key=lambda x: x[2] * x[3], reverse=self.sort_reverse)
 
     # Initialize num_rects
-    self.num_rects = len(self.rects)
+    if self.num_rects > len(self.rects):
+      self.num_rects = len(self.rects)
 
     self.draw_rectangles()
 
