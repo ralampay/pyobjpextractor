@@ -9,6 +9,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from lib.ss_obj_extractor import SsObjExtractor
 from lib.canny_obj_extractor import CannyObjExtractor
 from lib.extractor_util import ExtractorUtil
+from lib.saliency_fine_grained_extractor import SaliencyFineGrainedExtractor
 
 WINDOW_NAME="OUTPUT"
 
@@ -18,7 +19,8 @@ KEY_K = 107
 
 MODE_CHOICES = [
   "ss",
-  "canny"
+  "canny",
+  "sfg"
 ]
 
 def mouse_callback(event, x, y, flags, param):
@@ -48,7 +50,7 @@ def main():
   parser.add_argument("--output-dir", help="Output directory of saved image proposals", type=str, default="./")
   parser.add_argument("--rect-increment", help="Increment value for num rects", type=int, default=1)
   parser.add_argument("--num-rects", help="Number of initial bounding boxes", type=int, default=500)
-  parser.add_argument("--ss-padding", help="Padding in pixels for drawing rectangles", type=int, default=5)
+  parser.add_argument("--padding", help="Padding in pixels for drawing rectangles", type=int, default=5)
   parser.add_argument("--ss-is-fast", help="Fast processing for SS", type=bool, default=True)
   parser.add_argument("--canny-sigma", help="sigma for auto edge calculation for Canny", type=float, default=0.33)
 
@@ -59,16 +61,18 @@ def main():
   output_dir      = args.output_dir
   rect_increment  = args.rect_increment
   num_rects       = args.num_rects
-  ss_padding      = args.ss_padding
+  padding         = args.padding
   ss_is_fast      = args.ss_is_fast
   canny_sigma     = args.canny_sigma
 
   image = cv2.imread(input_file)
 
   if mode == "ss":
-    extractor = SsObjExtractor(img=image, padding=ss_padding, is_fast=ss_is_fast, num_rects=num_rects)
+    extractor = SsObjExtractor(img=image, padding=padding, is_fast=ss_is_fast, num_rects=num_rects)
   elif mode == "canny":
-    extractor = CannyObjExtractor(img=image, padding=ss_padding, num_rects=num_rects, sigma=canny_sigma)
+    extractor = CannyObjExtractor(img=image, padding=padding, num_rects=num_rects, sigma=canny_sigma)
+  elif mode == "sfg":
+    extractor = SaliencyFineGrainedExtractor(img=image, padding=padding, sigma=canny_sigma, num_rects=num_rects)
 
   extractor.exec()
 
