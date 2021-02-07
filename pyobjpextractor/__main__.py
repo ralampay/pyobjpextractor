@@ -102,22 +102,6 @@ def main():
       # Press 'q' to quit
       if(k == KEY_Q):
         break
-
-      # Press 'j' to increase number of rectangles
-      elif(k == KEY_J):
-        if(extractor.num_rects + rect_increment > len(extractor.rects)):
-          extractor.num_rects = len(extractor.rects)
-        else:
-          extractor.num_rects += rect_increment
-        print("Increasing regions to {}...".format(extractor.num_rects))
-
-        extractor.draw_rectangles()
-
-      # Press 'k' to decrease number of rectangles
-      elif(k == KEY_K and extractor.num_rects > rect_increment):
-        extractor.num_rects -= rect_increment
-        extractor.draw_rectangles()
-        print("Decreasing regions to {}...".format(extractor.num_rects))
     
     cap.release()
   else:
