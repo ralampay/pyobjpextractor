@@ -45,13 +45,14 @@ def mouse_callback(event, x, y, flags, param):
 def main():
   parser = argparse.ArgumentParser(description="PyObjPExtractor: Object Proposal Extractor program")
 
+  parser.add_argument("--video-index", help="Video index for capture", type=int, default=-1)
   parser.add_argument("--mode", help="Mode of object proposal extractor", type=str, default="ss", choices=MODE_CHOICES)
-  parser.add_argument("--input-file", help="Input image file (jpg/jpeg only)", required=True, type=str)
+  parser.add_argument("--input-file", help="Input image file (jpg/jpeg only)", type=str)
   parser.add_argument("--output-dir", help="Output directory of saved image proposals", type=str, default="./")
   parser.add_argument("--rect-increment", help="Increment value for num rects", type=int, default=1)
   parser.add_argument("--num-rects", help="Number of initial bounding boxes", type=int, default=500)
   parser.add_argument("--min-area", help="Minimum area for proposed objects", type=int, default=625)
-  parser.add_argument("--max-area", help="Maximum area for proposed objects", type=int, default=16000)
+  parser.add_argument("--max-area", help="Maximum area for proposed objects", type=int, default=62500)
   parser.add_argument("--padding", help="Padding in pixels for drawing rectangles", type=int, default=5)
   parser.add_argument("--ss-is-fast", help="Fast processing for SS", type=bool, default=True)
   parser.add_argument("--canny-sigma", help="sigma for auto edge calculation for Canny", type=float, default=0.33)
@@ -68,55 +69,106 @@ def main():
   canny_sigma     = args.canny_sigma
   min_area        = args.min_area
   max_area        = args.max_area
+  video_index     = args.video_index
 
-  image = cv2.imread(input_file)
+  if video_index >= 0:
+    cap = cv2.VideoCapture(video_index)
 
-  if mode == "ss":
-    extractor = SsObjExtractor(img=image, padding=padding, is_fast=ss_is_fast, num_rects=num_rects, min_area=min_area, max_area=max_area)
-  elif mode == "canny":
-    extractor = CannyObjExtractor(img=image, padding=padding, num_rects=num_rects, sigma=canny_sigma, min_area=min_area, max_area=max_area)
-  elif mode == "sfg":
-    extractor = SaliencyFineGrainedExtractor(img=image, padding=padding, sigma=canny_sigma, num_rects=num_rects, min_area=min_area, max_area=max_area)
+    while True:
+      ret, frame = cap.read()
 
-  extractor.exec()
+      if mode == "ss":
+        extractor = SsObjExtractor(img=frame, padding=padding, is_fast=ss_is_fast, num_rects=num_rects, min_area=min_area, max_area=max_area)
+      elif mode == "canny":
+        extractor = CannyObjExtractor(img=frame, padding=padding, num_rects=num_rects, sigma=canny_sigma, min_area=min_area, max_area=max_area)
+      elif mode == "sfg":
+        extractor = SaliencyFineGrainedExtractor(img=frame, padding=padding, sigma=canny_sigma, num_rects=num_rects, min_area=min_area, max_area=max_area)
 
-  callback_params = {
-    'extractor': extractor,
-    'extractor_util': ExtractorUtil(extractor),
-    'image': image,
-    'output_dir': output_dir
-  }
+      extractor.exec()
 
-  while True:
-    cv2.imshow(WINDOW_NAME, extractor.processed_img)
-    cv2.setMouseCallback(WINDOW_NAME, mouse_callback, callback_params)
-    
-    # Record key press
-    k = cv2.waitKey(0) & 0xFF
+      callback_params = {
+        'extractor': extractor,
+        'extractor_util': ExtractorUtil(extractor),
+        'image': frame,
+        'output_dir': output_dir
+      }
 
-    # Press 'q' to quit
-    if(k == KEY_Q):
-      break
-
-    # Press 'j' to increase number of rectangles
-    elif(k == KEY_J):
-      if(extractor.num_rects + rect_increment > len(extractor.rects)):
-        extractor.num_rects = len(extractor.rects)
-      else:
-        extractor.num_rects += rect_increment
-      print("Increasing regions to {}...".format(extractor.num_rects))
-
-      extractor.draw_rectangles()
-
-    # Press 'k' to decrease number of rectangles
-    elif(k == KEY_K and extractor.num_rects > rect_increment):
-      extractor.num_rects -= rect_increment
-      extractor.draw_rectangles()
-      print("Decreasing regions to {}...".format(extractor.num_rects))
+      cv2.imshow(WINDOW_NAME, extractor.processed_img)
+      cv2.setMouseCallback(WINDOW_NAME, mouse_callback, callback_params)
       
+      # Record key press
+      k = cv2.waitKey(1) & 0xFF
+
+      # Press 'q' to quit
+      if(k == KEY_Q):
+        break
+
+      # Press 'j' to increase number of rectangles
+      elif(k == KEY_J):
+        if(extractor.num_rects + rect_increment > len(extractor.rects)):
+          extractor.num_rects = len(extractor.rects)
+        else:
+          extractor.num_rects += rect_increment
+        print("Increasing regions to {}...".format(extractor.num_rects))
+
+        extractor.draw_rectangles()
+
+      # Press 'k' to decrease number of rectangles
+      elif(k == KEY_K and extractor.num_rects > rect_increment):
+        extractor.num_rects -= rect_increment
+        extractor.draw_rectangles()
+        print("Decreasing regions to {}...".format(extractor.num_rects))
+    
+    cap.release()
+  else:
+    image = cv2.imread(input_file)
+
+    if mode == "ss":
+      extractor = SsObjExtractor(img=image, padding=padding, is_fast=ss_is_fast, num_rects=num_rects, min_area=min_area, max_area=max_area)
+    elif mode == "canny":
+      extractor = CannyObjExtractor(img=image, padding=padding, num_rects=num_rects, sigma=canny_sigma, min_area=min_area, max_area=max_area)
+    elif mode == "sfg":
+      extractor = SaliencyFineGrainedExtractor(img=image, padding=padding, sigma=canny_sigma, num_rects=num_rects, min_area=min_area, max_area=max_area)
+
+    extractor.exec()
+
+    callback_params = {
+      'extractor': extractor,
+      'extractor_util': ExtractorUtil(extractor),
+      'image': image,
+      'output_dir': output_dir
+    }
+
+    while True:
+      cv2.imshow(WINDOW_NAME, extractor.processed_img)
+      cv2.setMouseCallback(WINDOW_NAME, mouse_callback, callback_params)
+      
+      # Record key press
+      k = cv2.waitKey(0) & 0xFF
+
+      # Press 'q' to quit
+      if(k == KEY_Q):
+        break
+
+      # Press 'j' to increase number of rectangles
+      elif(k == KEY_J):
+        if(extractor.num_rects + rect_increment > len(extractor.rects)):
+          extractor.num_rects = len(extractor.rects)
+        else:
+          extractor.num_rects += rect_increment
+        print("Increasing regions to {}...".format(extractor.num_rects))
+
+        extractor.draw_rectangles()
+
+      # Press 'k' to decrease number of rectangles
+      elif(k == KEY_K and extractor.num_rects > rect_increment):
+        extractor.num_rects -= rect_increment
+        extractor.draw_rectangles()
+        print("Decreasing regions to {}...".format(extractor.num_rects))
+        
+
 
   cv2.destroyAllWindows()
-
   print("Done.")
 
 if __name__ == '__main__':
