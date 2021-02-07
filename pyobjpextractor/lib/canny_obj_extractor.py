@@ -2,12 +2,14 @@ import cv2
 import numpy as np
 
 class CannyObjExtractor:
-  def __init__(self, img=None, sigma=0.33, padding=5, sort_reverse=False, num_rects=100):
+  def __init__(self, img=None, sigma=0.33, padding=5, sort_reverse=False, num_rects=100, min_area=2500, max_area=-1):
     self.img          = img
     self.sigma        = sigma
     self.padding      = padding
     self.sort_reverse = sort_reverse
     self.num_rects    = num_rects
+    self.min_area     = min_area
+    self.max_area     = max_area
 
   def exec(self):
     self.gray   = cv2.cvtColor(self.img, cv2.COLOR_BGR2GRAY) 
@@ -24,6 +26,24 @@ class CannyObjExtractor:
     # Initialize num_rects
     if self.num_rects > len(self.rects):
       self.num_rects = len(self.rects)
+
+    # Filter only all objects >= self.rects
+    if self.min_area > 0:
+      temp = []
+      for r in  self.rects:
+        if r[2] * r[3] >= self.min_area:
+          temp.append(r)
+
+      self.rects = temp
+
+    # Filter only all objects <= self.max_area
+    if self.max_area > 0:
+      temp = []
+      for r in  self.rects:
+        if r[2] * r[3] <= self.max_area:
+          temp.append(r)
+
+      self.rects = temp
 
     self.draw_rectangles()
 
