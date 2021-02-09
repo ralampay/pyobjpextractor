@@ -22,8 +22,17 @@ pip install .
 pip uninstall pyobjpextractor
 ```
 
-## Sample Usage
+## Sample Usage (single input image)
 
 ```
 pyobjpextractor-cli --input-file [path_to_image]
 ```
+
+## Sample Usage (for use with video)
+
+
+```
+pyobjpextractor-cli --min-area 1250 --max-area -1 --mode sfg --video-index 0
+```
+
+This will fetch object proposals that have a minimum area of `1250` pixels without any maximum area limit (`-1`)
