@@ -10,6 +10,7 @@ from lib.ss_obj_extractor import SsObjExtractor
 from lib.canny_obj_extractor import CannyObjExtractor
 from lib.extractor_util import ExtractorUtil
 from lib.saliency_fine_grained_extractor import SaliencyFineGrainedExtractor
+from lib.tracker import Tracker
 
 WINDOW_NAME="OUTPUT"
 
@@ -72,7 +73,11 @@ def main():
   video_index     = args.video_index
 
   if video_index >= 0:
+    # initialize video capture instance
     cap = cv2.VideoCapture(video_index)
+
+    # initialize tracker for tracking
+    tracker = Tracker()
 
     while True:
       ret, frame = cap.read()
@@ -92,6 +97,11 @@ def main():
         'image': frame,
         'output_dir': output_dir
       }
+
+      # Save data in tracker
+      tracker.snapshot(extractor)
+
+      tracker.print_data()
 
       cv2.imshow(WINDOW_NAME, extractor.processed_img)
       cv2.setMouseCallback(WINDOW_NAME, mouse_callback, callback_params)
