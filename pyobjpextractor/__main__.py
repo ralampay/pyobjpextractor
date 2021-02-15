@@ -47,6 +47,7 @@ def main():
   parser = argparse.ArgumentParser(description="PyObjPExtractor: Object Proposal Extractor program")
 
   parser.add_argument("--video-index", help="Video index for capture", type=int, default=-1)
+  parser.add_argument("--video-file", help="Video file for capture", type=str)
   parser.add_argument("--mode", help="Mode of object proposal extractor", type=str, default="ss", choices=MODE_CHOICES)
   parser.add_argument("--input-file", help="Input image file (jpg/jpeg only)", type=str)
   parser.add_argument("--output-dir", help="Output directory of saved image proposals", type=str, default="./")
@@ -71,8 +72,51 @@ def main():
   min_area        = args.min_area
   max_area        = args.max_area
   video_index     = args.video_index
+  video_file      = args.video_file
 
-  if video_index >= 0:
+  if video_file:
+    # initialize video capture instance
+    cap = cv2.VideoCapture(video_file)
+
+    # initialize tracker for tracking
+    tracker = Tracker()
+
+    while True:
+      ret, frame = cap.read()
+
+      if mode == "ss":
+        extractor = SsObjExtractor(img=frame, padding=padding, is_fast=ss_is_fast, num_rects=num_rects, min_area=min_area, max_area=max_area)
+      elif mode == "canny":
+        extractor = CannyObjExtractor(img=frame, padding=padding, num_rects=num_rects, sigma=canny_sigma, min_area=min_area, max_area=max_area)
+      elif mode == "sfg":
+        extractor = SaliencyFineGrainedExtractor(img=frame, padding=padding, sigma=canny_sigma, num_rects=num_rects, min_area=min_area, max_area=max_area)
+
+      extractor.exec()
+
+      callback_params = {
+        'extractor': extractor,
+        'extractor_util': ExtractorUtil(extractor),
+        'image': frame,
+        'output_dir': output_dir
+      }
+
+      # Save data in tracker
+      tracker.snapshot(extractor)
+
+      tracker.print_data()
+
+      cv2.imshow(WINDOW_NAME, extractor.processed_img)
+      cv2.setMouseCallback(WINDOW_NAME, mouse_callback, callback_params)
+      
+      # Record key press
+      k = cv2.waitKey(25) & 0xFF
+
+      # Press 'q' to quit
+      if(k == KEY_Q):
+        break
+    
+    cap.release()
+  elif video_index >= 0:
     # initialize video capture instance
     cap = cv2.VideoCapture(video_index)
 
