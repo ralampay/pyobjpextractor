@@ -6,11 +6,15 @@ import uuid
 sys.path.append(os.path.join(os.path.dirname(__file__), '.'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
+from torch import tensor
+import torch
+
 from lib.ss_obj_extractor import SsObjExtractor
 from lib.canny_obj_extractor import CannyObjExtractor
 from lib.extractor_util import ExtractorUtil
 from lib.saliency_fine_grained_extractor import SaliencyFineGrainedExtractor
 from lib.tracker import Tracker
+from lib.cnn_autoencoder import CnnAutoencoder
 
 WINDOW_NAME="OUTPUT"
 
@@ -59,6 +63,16 @@ def main():
   parser.add_argument("--ss-is-fast", help="Fast processing for SS", type=bool, default=True)
   parser.add_argument("--canny-sigma", help="sigma for auto edge calculation for Canny", type=float, default=0.33)
 
+  # CNN Parameters
+  parser.add_argument("--cnn-a-model", help="Model file (pth) for CNN Autoencoder", type=str, default="./model.pth")
+  parser.add_argument("--cnn-a-img-height", help="Image height for CNN Autoencoder model", type=int, default=100)
+  parser.add_argument("--cnn-a-img-width", help="Image width for CNN Autoencoder model", type=int, default=100)
+  parser.add_argument("--cnn-a-layers", help="Layers for CNN Autoencoder model", type=int, nargs='+')
+  parser.add_argument("--cnn-a-num-channels", help="Number of channels for CNN Autoencoder model", type=int, default=3)
+  parser.add_argument("--cnn-a-scale", help="Scale for CNN Autoencoder model", type=int, default=2)
+  parser.add_argument("--cnn-a-padding", help="Padding for CNN Autoencoder model", type=int, default=1)
+  parser.add_argument("--cnn-a-kernel-size", help="Kernel size for CNN Autoencoder model", type=int, default=3)
+
   args = parser.parse_args()
 
   mode            = args.mode
@@ -73,6 +87,38 @@ def main():
   max_area        = args.max_area
   video_index     = args.video_index
   video_file      = args.video_file
+
+  # Device
+  if torch.cuda.is_available():
+    dev = "cuda:0"
+    print("CUDA is available...")
+  else:
+    dev = "cpu"
+
+  device = torch.device(dev)
+
+  # CNN Parameters
+  cnn_a_model         = args.cnn_a_model
+  cnn_a_img_height    = args.cnn_a_img_height
+  cnn_a_img_width     = args.cnn_a_img_width
+  cnn_a_layers        = args.cnn_a_layers
+  cnn_a_num_channels  = args.cnn_a_num_channels
+  cnn_a_scale         = args.cnn_a_scale
+  cnn_a_padding       = args.cnn_a_padding
+  cnn_a_kernel_size   = args.cnn_a_kernel_size
+
+  cnn_autoencoder = CnnAutoencoder(
+                      scale=cnn_a_scale, 
+                      channel_maps=cnn_a_layers, 
+                      padding=cnn_a_padding, 
+                      kernel_size=cnn_a_kernel_size,
+                      num_channels=cnn_a_num_channels,
+                      img_width=cnn_a_img_width,
+                      img_height=cnn_a_img_height,
+                      device=dev
+                    )
+
+  cnn_autoencoder.to(device)
 
   if video_file:
     # initialize video capture instance
