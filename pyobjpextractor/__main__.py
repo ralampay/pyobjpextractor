@@ -17,6 +17,8 @@ from lib.tracker import Tracker
 from lib.cnn_autoencoder import CnnAutoencoder
 from lib.average_object_perceptions_feature_extractor import AverageObjectPerceptionsFeatureExtractor as FeatureExtractor
 
+import matplotlib.pyplot as plt
+
 WINDOW_NAME="OUTPUT"
 
 KEY_Q = 113
@@ -173,6 +175,10 @@ def main():
     
     cap.release()
   elif video_index >= 0:
+    fig, ax = plt.subplots(1,1)
+    plt.ion()
+    plt.show()
+
     # initialize video capture instance
     cap = cv2.VideoCapture(video_index)
 
@@ -180,6 +186,7 @@ def main():
     tracker = Tracker()
 
     while True:
+      fig.clf()
       ret, frame = cap.read()
 
       if mode == "ss":
@@ -199,6 +206,7 @@ def main():
         result = feature_extractor.execute()
 
         print(result)
+        plt.plot(result)
 
       callback_params = {
         'extractor': extractor,
