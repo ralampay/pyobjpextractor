@@ -120,6 +120,12 @@ class CnnAutoencoder(nn.Module):
 
     torch.save(state, filename)
 
+  def flatten(self, x):
+    x = self.conv(x)
+    x = x.view(x.size(0), -1)
+
+    return x
+
   def load(self, filename):
     state = torch.load(filename)
 

@@ -15,6 +15,7 @@ from lib.extractor_util import ExtractorUtil
 from lib.saliency_fine_grained_extractor import SaliencyFineGrainedExtractor
 from lib.tracker import Tracker
 from lib.cnn_autoencoder import CnnAutoencoder
+from lib.average_object_perceptions_feature_extractor import AverageObjectPerceptionsFeatureExtractor as FeatureExtractor
 
 WINDOW_NAME="OUTPUT"
 
@@ -64,9 +65,9 @@ def main():
   parser.add_argument("--canny-sigma", help="sigma for auto edge calculation for Canny", type=float, default=0.33)
 
   # CNN Parameters
-  parser.add_argument("--cnn-a-model", help="Model file (pth) for CNN Autoencoder", type=str, default="./model.pth")
-  parser.add_argument("--cnn-a-img-height", help="Image height for CNN Autoencoder model", type=int, default=100)
-  parser.add_argument("--cnn-a-img-width", help="Image width for CNN Autoencoder model", type=int, default=100)
+  parser.add_argument("--cnn-a-model", help="Model file (pth) for CNN Autoencoder", type=str)
+  parser.add_argument("--cnn-a-img-height", help="Image height for CNN Autoencoder model", type=int, default=32)
+  parser.add_argument("--cnn-a-img-width", help="Image width for CNN Autoencoder model", type=int, default=32)
   parser.add_argument("--cnn-a-layers", help="Layers for CNN Autoencoder model", type=int, nargs='+')
   parser.add_argument("--cnn-a-num-channels", help="Number of channels for CNN Autoencoder model", type=int, default=3)
   parser.add_argument("--cnn-a-scale", help="Scale for CNN Autoencoder model", type=int, default=2)
@@ -139,6 +140,15 @@ def main():
 
       extractor.exec()
 
+      if cnn_a_model:
+        cnn_autoencoder.load(cnn_a_model)
+
+        feature_extractor = FeatureExtractor(cnn_autoencoder, frame, extractor.rects, cnn_a_padding, cnn_a_img_width, cnn_a_img_height)
+
+        result = feature_extractor.execute()
+
+        print(result)
+
       callback_params = {
         'extractor': extractor,
         'extractor_util': ExtractorUtil(extractor),
@@ -181,6 +191,15 @@ def main():
 
       extractor.exec()
 
+      if cnn_a_model:
+        cnn_autoencoder.load(cnn_a_model)
+
+        feature_extractor = FeatureExtractor(cnn_autoencoder, frame, extractor.rects, cnn_a_padding, cnn_a_img_width, cnn_a_img_height)
+
+        result = feature_extractor.execute()
+
+        print(result)
+
       callback_params = {
         'extractor': extractor,
         'extractor_util': ExtractorUtil(extractor),
@@ -191,7 +210,7 @@ def main():
       # Save data in tracker
       tracker.snapshot(extractor)
 
-      tracker.print_data()
+      #tracker.print_data()
 
       cv2.imshow(WINDOW_NAME, extractor.processed_img)
       cv2.setMouseCallback(WINDOW_NAME, mouse_callback, callback_params)
@@ -205,6 +224,7 @@ def main():
     
     cap.release()
   else:
+
     image = cv2.imread(input_file)
 
     if mode == "ss":
@@ -215,6 +235,13 @@ def main():
       extractor = SaliencyFineGrainedExtractor(img=image, padding=padding, sigma=canny_sigma, num_rects=num_rects, min_area=min_area, max_area=max_area)
 
     extractor.exec()
+
+    if cnn_a_model:
+      cnn_autoencoder.load(cnn_a_model)
+
+      feature_extractor = FeatureExtractor(cnn_autoencoder, image, extractor.rects, cnn_a_padding, cnn_a_img_width, cnn_a_img_height)
+
+      result = feature_extractor.execute()
 
     callback_params = {
       'extractor': extractor,
