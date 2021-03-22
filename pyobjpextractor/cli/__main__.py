@@ -1,12 +1,12 @@
 import sys
 import argparse
 import os
-import cv2
 import uuid
 import numpy as np
 sys.path.append(os.path.join(os.path.dirname(__file__), '.'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
+import cv2
 from torch import tensor
 import torch
 
@@ -18,6 +18,8 @@ from lib.cnn_autoencoder import CnnAutoencoder
 from lib.autoencoder import Autoencoder
 from lib.average_object_perceptions_feature_extractor import AverageObjectPerceptionsFeatureExtractor as FeatureExtractor
 
+from cli.cv_utils import mouse_callback
+
 WINDOW_NAME="OUTPUT"
 KEY_Q = 113
 KEY_J = 106
@@ -28,25 +30,6 @@ MODE_CHOICES = [
   "canny",
   "sfg"
 ]
-
-def mouse_callback(event, x, y, flags, param):
-  if event == cv2.EVENT_LBUTTONUP:
-    print("Current Position (%d, %d)" % (x, y))
-
-    rects = param['extractor_util'].fetch_rects_in_bounds(x, y)
-
-    print("Found {} regions!".format(len(rects)))
-
-    regions = []
-
-    for r in rects:
-      roi = param['image'][r[1]:r[1] + r[3], r[0]:r[0] + r[2]]
-      filename = "{}/{}.jpg".format(param['output_dir'], str(uuid.uuid1()))
-
-      print("Saving to {}".format(filename))
-
-      # save to output dir
-      cv2.imwrite(filename, roi)
 
 def main():
   parser = argparse.ArgumentParser(description="PyObjPExtractor: Object Proposal Extractor program")
