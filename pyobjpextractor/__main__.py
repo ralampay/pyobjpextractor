@@ -3,6 +3,7 @@ import argparse
 import os
 import cv2
 import uuid
+import numpy as np
 sys.path.append(os.path.join(os.path.dirname(__file__), '.'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
@@ -13,14 +14,11 @@ from lib.ss_obj_extractor import SsObjExtractor
 from lib.canny_obj_extractor import CannyObjExtractor
 from lib.extractor_util import ExtractorUtil
 from lib.saliency_fine_grained_extractor import SaliencyFineGrainedExtractor
-from lib.tracker import Tracker
 from lib.cnn_autoencoder import CnnAutoencoder
+from lib.autoencoder import Autoencoder
 from lib.average_object_perceptions_feature_extractor import AverageObjectPerceptionsFeatureExtractor as FeatureExtractor
 
-import matplotlib.pyplot as plt
-
 WINDOW_NAME="OUTPUT"
-
 KEY_Q = 113
 KEY_J = 106
 KEY_K = 107
@@ -110,46 +108,40 @@ def main():
   cnn_a_padding       = args.cnn_a_padding
   cnn_a_kernel_size   = args.cnn_a_kernel_size
 
-  cnn_autoencoder = CnnAutoencoder(
-                      scale=cnn_a_scale, 
-                      channel_maps=cnn_a_layers, 
-                      padding=cnn_a_padding, 
-                      kernel_size=cnn_a_kernel_size,
-                      num_channels=cnn_a_num_channels,
-                      img_width=cnn_a_img_width,
-                      img_height=cnn_a_img_height,
-                      device=dev
-                    )
+  if cnn_a_model:
+    cnn_autoencoder = CnnAutoencoder(
+                        scale=cnn_a_scale, 
+                        channel_maps=cnn_a_layers, 
+                        padding=cnn_a_padding, 
+                        kernel_size=cnn_a_kernel_size,
+                        num_channels=cnn_a_num_channels,
+                        img_width=cnn_a_img_width,
+                        img_height=cnn_a_img_height,
+                        device=dev
+                      )
 
-  cnn_autoencoder.to(device)
+    cnn_autoencoder.to(device)
+
+    print("Loading autoencoder model {}".format(cnn_a_model))
+    cnn_autoencoder.load(cnn_a_model)
+    print("CNN Optimal Threshold: %0.4f" % (cnn_autoencoder.optimal_threshold))
+
+  if mode == "ss":
+    extractor = SsObjExtractor(img=None, padding=padding, is_fast=ss_is_fast, num_rects=num_rects, min_area=min_area, max_area=max_area)
+  elif mode == "canny":
+    extractor = CannyObjExtractor(img=None, padding=padding, num_rects=num_rects, sigma=canny_sigma, min_area=min_area, max_area=max_area)
+  elif mode == "sfg":
+    extractor = SaliencyFineGrainedExtractor(img=None, padding=padding, sigma=canny_sigma, num_rects=num_rects, min_area=min_area, max_area=max_area)
 
   if video_file:
     # initialize video capture instance
     cap = cv2.VideoCapture(video_file)
 
-    # initialize tracker for tracking
-    tracker = Tracker()
-
     while True:
       ret, frame = cap.read()
 
-      if mode == "ss":
-        extractor = SsObjExtractor(img=frame, padding=padding, is_fast=ss_is_fast, num_rects=num_rects, min_area=min_area, max_area=max_area)
-      elif mode == "canny":
-        extractor = CannyObjExtractor(img=frame, padding=padding, num_rects=num_rects, sigma=canny_sigma, min_area=min_area, max_area=max_area)
-      elif mode == "sfg":
-        extractor = SaliencyFineGrainedExtractor(img=frame, padding=padding, sigma=canny_sigma, num_rects=num_rects, min_area=min_area, max_area=max_area)
-
+      extractor.img = frame
       extractor.exec()
-
-      if cnn_a_model:
-        cnn_autoencoder.load(cnn_a_model)
-
-        feature_extractor = FeatureExtractor(cnn_autoencoder, frame, extractor.rects, cnn_a_padding, cnn_a_img_width, cnn_a_img_height)
-
-        result = feature_extractor.execute()
-
-        print(result)
 
       callback_params = {
         'extractor': extractor,
@@ -157,11 +149,6 @@ def main():
         'image': frame,
         'output_dir': output_dir
       }
-
-      # Save data in tracker
-      tracker.snapshot(extractor)
-
-      tracker.print_data()
 
       cv2.imshow(WINDOW_NAME, extractor.processed_img)
       cv2.setMouseCallback(WINDOW_NAME, mouse_callback, callback_params)
@@ -175,38 +162,14 @@ def main():
     
     cap.release()
   elif video_index >= 0:
-    fig, ax = plt.subplots(1,1)
-    plt.ion()
-    plt.show()
-
     # initialize video capture instance
     cap = cv2.VideoCapture(video_index)
 
-    # initialize tracker for tracking
-    tracker = Tracker()
-
     while True:
-      fig.clf()
       ret, frame = cap.read()
 
-      if mode == "ss":
-        extractor = SsObjExtractor(img=frame, padding=padding, is_fast=ss_is_fast, num_rects=num_rects, min_area=min_area, max_area=max_area)
-      elif mode == "canny":
-        extractor = CannyObjExtractor(img=frame, padding=padding, num_rects=num_rects, sigma=canny_sigma, min_area=min_area, max_area=max_area)
-      elif mode == "sfg":
-        extractor = SaliencyFineGrainedExtractor(img=frame, padding=padding, sigma=canny_sigma, num_rects=num_rects, min_area=min_area, max_area=max_area)
-
+      extractor.img = frame
       extractor.exec()
-
-      if cnn_a_model:
-        cnn_autoencoder.load(cnn_a_model)
-
-        feature_extractor = FeatureExtractor(cnn_autoencoder, frame, extractor.rects, cnn_a_padding, cnn_a_img_width, cnn_a_img_height)
-
-        result = feature_extractor.execute()
-
-        print(result)
-        plt.plot(result)
 
       callback_params = {
         'extractor': extractor,
@@ -214,11 +177,6 @@ def main():
         'image': frame,
         'output_dir': output_dir
       }
-
-      # Save data in tracker
-      tracker.snapshot(extractor)
-
-      #tracker.print_data()
 
       cv2.imshow(WINDOW_NAME, extractor.processed_img)
       cv2.setMouseCallback(WINDOW_NAME, mouse_callback, callback_params)
@@ -232,24 +190,10 @@ def main():
     
     cap.release()
   else:
-
     image = cv2.imread(input_file)
 
-    if mode == "ss":
-      extractor = SsObjExtractor(img=image, padding=padding, is_fast=ss_is_fast, num_rects=num_rects, min_area=min_area, max_area=max_area)
-    elif mode == "canny":
-      extractor = CannyObjExtractor(img=image, padding=padding, num_rects=num_rects, sigma=canny_sigma, min_area=min_area, max_area=max_area)
-    elif mode == "sfg":
-      extractor = SaliencyFineGrainedExtractor(img=image, padding=padding, sigma=canny_sigma, num_rects=num_rects, min_area=min_area, max_area=max_area)
-
+    extractor.img = image
     extractor.exec()
-
-    if cnn_a_model:
-      cnn_autoencoder.load(cnn_a_model)
-
-      feature_extractor = FeatureExtractor(cnn_autoencoder, image, extractor.rects, cnn_a_padding, cnn_a_img_width, cnn_a_img_height)
-
-      result = feature_extractor.execute()
 
     callback_params = {
       'extractor': extractor,

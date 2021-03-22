@@ -17,12 +17,33 @@ class AverageObjectPerceptionsFeatureExtractor:
 
     images = self.rects_to_images()
 
-    if len(images) > 0:
-      result  = self.cnn_autoencoder.flatten(
-                  cv2_to_tensor(images)
-                )
 
-      features = np.mean(result.detach().numpy(), axis=0)
+    if len(images) > 0:
+      image_data = []
+
+      obj_predictions = self.cnn_autoencoder.predict(cv2_to_tensor(images))
+
+      for i in range(len(obj_predictions)):
+        if obj_predictions[i] == 1:
+          image_data.append(images[i])    
+
+
+      if len(image_data) > 0:
+        result  = self.cnn_autoencoder.flatten(
+                    cv2_to_tensor(image_data)
+                  )
+
+
+        x = result.detach().numpy()
+
+        print("Found %d of %d objects!" % (len(x), len(images)))
+
+        denominator = x.max(axis=0)
+
+        if denominator.tolist().count(0) == 0:
+          x = x / denominator
+
+          features = np.sum(x, axis=0)
 
       return features
 

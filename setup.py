@@ -12,7 +12,7 @@ setup(
   packages=find_packages(),
   entry_points={
     'console_scripts': [
-      'pyobjpextractor-cli = pyobjpextractor.__main__:main'
+      'pyobjpextractor = pyobjpextractor.__main__:main'
     ]
   }
 )

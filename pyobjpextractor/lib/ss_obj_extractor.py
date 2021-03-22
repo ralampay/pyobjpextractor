@@ -12,6 +12,7 @@ class SsObjExtractor:
     self.min_area     = min_area
     self.max_area     = max_area
 
+  def exec(self):
     self.ss.setBaseImage(self.img)
 
     if self.is_fast:
@@ -19,7 +20,6 @@ class SsObjExtractor:
     else:
       self.ss.switchToSelectiveSearchQuality()
 
-  def exec(self):
     self.rects = self.ss.process()
 
     self.rects = sorted(self.rects, key=lambda x: x[2] * x[3], reverse=self.sort_reverse)
