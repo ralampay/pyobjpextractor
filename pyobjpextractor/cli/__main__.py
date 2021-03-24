@@ -14,9 +14,8 @@ from lib.ss_obj_extractor import SsObjExtractor
 from lib.canny_obj_extractor import CannyObjExtractor
 from lib.extractor_util import ExtractorUtil
 from lib.saliency_fine_grained_extractor import SaliencyFineGrainedExtractor
+from lib.saliency_spectral_residual_extractor import SaliencySpectralResidualExtractor
 from lib.cnn_autoencoder import CnnAutoencoder
-from lib.autoencoder import Autoencoder
-from lib.average_object_perceptions_feature_extractor import AverageObjectPerceptionsFeatureExtractor as FeatureExtractor
 
 from cli.cv_utils import mouse_callback
 
@@ -28,7 +27,8 @@ KEY_K = 107
 MODE_CHOICES = [
   "ss",
   "canny",
-  "sfg"
+  "sfg",
+  "spr"
 ]
 
 def main():
@@ -115,6 +115,8 @@ def main():
     extractor = CannyObjExtractor(img=None, padding=padding, num_rects=num_rects, sigma=canny_sigma, min_area=min_area, max_area=max_area)
   elif mode == "sfg":
     extractor = SaliencyFineGrainedExtractor(img=None, padding=padding, sigma=canny_sigma, num_rects=num_rects, min_area=min_area, max_area=max_area)
+  elif mode == "spr":
+    extractor = SaliencySpectralResidualExtractor(img=None, padding=padding, sigma=canny_sigma, num_rects=num_rects, min_area=min_area, max_area=max_area)
 
   if video_file:
     # initialize video capture instance

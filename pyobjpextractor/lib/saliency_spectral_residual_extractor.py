@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-class SaliencyFineGrainedExtractor:
+class SaliencySpectralResidualExtractor:
   def __init__(self, img=None, sigma=0.33, padding=5, sort_reverse=False, num_rects=100, min_area=2500, max_area=-1):
     self.img          = img
     self.rects        = []
@@ -9,7 +9,7 @@ class SaliencyFineGrainedExtractor:
     self.padding      = padding
     self.sigma        = sigma
     self.sort_reverse = sort_reverse
-    self.saliency     = cv2.saliency.StaticSaliencyFineGrained_create()
+    self.saliency     = cv2.saliency.StaticSaliencySpectralResidual_create()
     self.min_area     = min_area
     self.max_area     = max_area
 
