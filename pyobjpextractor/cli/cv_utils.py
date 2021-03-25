@@ -1,4 +1,5 @@
 import cv2
+import uuid
 
 def mouse_callback(event, x, y, flags, param):
   if event == cv2.EVENT_LBUTTONUP:

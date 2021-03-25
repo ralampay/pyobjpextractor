@@ -27,4 +27,6 @@ build/
 # Ignore jupyter notebook checkpoints
 notebooks/.ipynb_checkpoints/
 
+# Ignore assets
 images/
+videos/

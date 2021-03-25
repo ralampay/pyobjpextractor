@@ -1,7 +1,6 @@
 import sys
 import argparse
 import os
-import uuid
 import numpy as np
 sys.path.append(os.path.join(os.path.dirname(__file__), '.'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
@@ -20,9 +19,11 @@ from lib.cnn_autoencoder import CnnAutoencoder
 from cli.cv_utils import mouse_callback
 
 WINDOW_NAME="OUTPUT"
-KEY_Q = 113
-KEY_J = 106
-KEY_K = 107
+
+KEY_P = 112 # Pause / Play
+KEY_Q = 113 # Quit
+KEY_J = 106 # Add windows
+KEY_K = 107 # Subtract windows
 
 MODE_CHOICES = [
   "ss",
@@ -122,8 +123,11 @@ def main():
     # initialize video capture instance
     cap = cv2.VideoCapture(video_file)
 
+    is_running = True
+
     while True:
-      ret, frame = cap.read()
+      if is_running:
+        ret, frame = cap.read()
 
       if frame is not None:
         extractor.img = frame
@@ -145,6 +149,8 @@ def main():
         # Press 'q' to quit
         if(k == KEY_Q):
           break
+        elif(k == KEY_P):
+          is_running = not is_running
       else:
         break
     
@@ -219,8 +225,6 @@ def main():
         extractor.num_rects -= rect_increment
         extractor.draw_rectangles()
         print("Decreasing regions to {}...".format(extractor.num_rects))
-        
-
 
   cv2.destroyAllWindows()
   print("Done.")
