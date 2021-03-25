@@ -125,24 +125,27 @@ def main():
     while True:
       ret, frame = cap.read()
 
-      extractor.img = frame
-      extractor.exec()
+      if frame is not None:
+        extractor.img = frame
+        extractor.exec()
 
-      callback_params = {
-        'extractor': extractor,
-        'extractor_util': ExtractorUtil(extractor),
-        'image': frame,
-        'output_dir': output_dir
-      }
+        callback_params = {
+          'extractor': extractor,
+          'extractor_util': ExtractorUtil(extractor),
+          'image': frame,
+          'output_dir': output_dir
+        }
 
-      cv2.imshow(WINDOW_NAME, extractor.processed_img)
-      cv2.setMouseCallback(WINDOW_NAME, mouse_callback, callback_params)
-      
-      # Record key press
-      k = cv2.waitKey(25) & 0xFF
+        cv2.imshow(WINDOW_NAME, extractor.processed_img)
+        cv2.setMouseCallback(WINDOW_NAME, mouse_callback, callback_params)
+        
+        # Record key press
+        k = cv2.waitKey(25) & 0xFF
 
-      # Press 'q' to quit
-      if(k == KEY_Q):
+        # Press 'q' to quit
+        if(k == KEY_Q):
+          break
+      else:
         break
     
     cap.release()
@@ -153,24 +156,27 @@ def main():
     while True:
       ret, frame = cap.read()
 
-      extractor.img = frame
-      extractor.exec()
+      if frame is not None:
+        extractor.img = frame
+        extractor.exec()
 
-      callback_params = {
-        'extractor': extractor,
-        'extractor_util': ExtractorUtil(extractor),
-        'image': frame,
-        'output_dir': output_dir
-      }
+        callback_params = {
+          'extractor': extractor,
+          'extractor_util': ExtractorUtil(extractor),
+          'image': frame,
+          'output_dir': output_dir
+        }
 
-      cv2.imshow(WINDOW_NAME, extractor.processed_img)
-      cv2.setMouseCallback(WINDOW_NAME, mouse_callback, callback_params)
-      
-      # Record key press
-      k = cv2.waitKey(1) & 0xFF
+        cv2.imshow(WINDOW_NAME, extractor.processed_img)
+        cv2.setMouseCallback(WINDOW_NAME, mouse_callback, callback_params)
+        
+        # Record key press
+        k = cv2.waitKey(1) & 0xFF
 
-      # Press 'q' to quit
-      if(k == KEY_Q):
+        # Press 'q' to quit
+        if(k == KEY_Q):
+          break
+      else:
         break
     
     cap.release()
